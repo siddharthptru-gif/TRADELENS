@@ -1,4 +1,7 @@
+/// <reference types="vite/client" />
 import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getStorage } from 'firebase/storage';
+import { getFunctions } from 'firebase/functions';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,3 +18,5 @@ if (!firebaseConfig.apiKey) {
 }
 
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+export const storage = getStorage(app);
+export const functions = getFunctions(app);

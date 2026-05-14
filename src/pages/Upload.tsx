@@ -1,26 +1,107 @@
-import React from 'react';
-import { GlassCard } from '../components/ui/GlassCard';
+import React, { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { useChartUpload, UploadMetadata } from '../hooks/useChartUpload';
+import { ImageDropzone } from '../components/upload/ImageDropzone';
+import { ChartPreview } from '../components/upload/ChartPreview';
+import { MetadataForm } from '../components/upload/MetadataForm';
+import { UploadSafetyNote } from '../components/upload/UploadSafetyNote';
+import { UploadProgress } from '../components/upload/UploadProgress';
 import { GradientButton } from '../components/ui/GradientButton';
-import { useNavigate } from 'react-router-dom';
+import { PageTransition } from '../components/ui/PageTransition';
+import { PageHeader } from '../components/layout/PageHeader';
 
 export default function Upload() {
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const {
+    selectedFile,
+    previewUrl,
+    validationError,
+    uploading,
+    uploadProgress,
+    submitError,
+    handleFileSelect,
+    clearSelectedFile,
+    submitScan
+  } = useChartUpload();
+
+  const [metadata, setMetadata] = useState<UploadMetadata>({
+    marketType: 'unknown',
+    timeframe: 'unknown',
+    symbol: '',
+    currentPrice: '',
+    tradingStyle: 'swing',
+    riskProfile: 'medium',
+    notes: '',
+    accountSize: '',
+    riskPercent: ''
+  });
+
+  const handleMetadataChange = (key: keyof UploadMetadata, value: any) => {
+    setMetadata(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleAnalyze = () => {
+    submitScan(metadata);
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
-      <h1 className="text-3xl font-serif mb-2">Upload Chart</h1>
-      <p className="text-muted mb-8">Drop your chart screenshot here for AI analysis.</p>
-      
-      <GlassCard className="p-12 mb-8 border-dashed border-white/20 hover:border-white/40 transition-colors flex flex-col items-center justify-center text-center cursor-pointer min-h-[300px]">
-        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-6">
-          <span className="text-2xl opacity-50">+</span>
+    <PageTransition>
+      <PageHeader 
+        title="Analyze a Chart" 
+        subtitle="Upload a candlestick screenshot and add context so TradeLens AI can prepare a structured educational analysis."
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-7 flex flex-col gap-6">
+          {!selectedFile || !previewUrl ? (
+            <ImageDropzone onFileSelect={handleFileSelect} disabled={uploading} />
+          ) : (
+            <ChartPreview 
+              file={selectedFile} 
+              previewUrl={previewUrl} 
+              onClear={clearSelectedFile} 
+              disabled={uploading} 
+            />
+          )}
+          
+          {validationError && (
+            <div className="p-4 bg-[--color-tradelens-red]/10 border border-[--color-tradelens-red]/20 text-[--color-tradelens-red] text-sm rounded-xl">
+              {validationError}
+            </div>
+          )}
+          
+          <UploadSafetyNote />
         </div>
-        <h3 className="text-xl font-serif mb-2">Drag & Drop</h3>
-        <p className="text-sm text-white/40">or click to browse. Max 8MB (WebP/JPG/PNG).</p>
-      </GlassCard>
-      
-      <div className="flex justify-end">
-        <GradientButton onClick={() => navigate('/scan/new/loading')}>Analyze Chart</GradientButton>
+
+        <div className="lg:col-span-5 flex flex-col">
+          <MetadataForm 
+            metadata={metadata} 
+            onChange={handleMetadataChange} 
+            disabled={uploading} 
+          />
+
+          {submitError && (
+            <div className="mt-4 p-4 bg-[--color-tradelens-red]/10 border border-[--color-tradelens-red]/20 text-[--color-tradelens-red] text-sm rounded-xl">
+              {submitError}
+            </div>
+          )}
+
+          <UploadProgress progress={uploadProgress} />
+
+          <GradientButton 
+            className="w-full mt-6 py-5 text-lg"
+            disabled={!selectedFile || !!validationError || uploading}
+            onClick={handleAnalyze}
+          >
+            {uploading ? 'Uploading chart...' : 'Analyze Chart'}
+          </GradientButton>
+          
+          <p className="text-[10px] text-center text-muted mt-4 uppercase tracking-wider">
+            Educational analysis only. Not financial advice.
+          </p>
+        </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }

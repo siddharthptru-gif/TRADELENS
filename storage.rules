@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Only authenticated users can access
+    match /chartUploads/{uid}/{scanId}/{fileName} {
+      // Must be owner, less than 8MB, valid image type
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null 
+                   && request.auth.uid == uid
+                   && request.resource.size <= 8 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+    
+    match /profilePhotos/{uid}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null 
+                   && request.auth.uid == uid
+                   && request.resource.size <= 2 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    match /journalAttachments/{uid}/{journalId}/{fileName} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null 
+                   && request.auth.uid == uid
+                   && request.resource.size <= 8 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    match /reportExports/{uid}/{fileName} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false; // Only Cloud Functions should write exports
+    }
+  }
+}

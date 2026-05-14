@@ -14,6 +14,8 @@ import Watchlist from '../pages/Watchlist';
 import Pricing from '../pages/Pricing';
 import Settings from '../pages/Settings';
 import Help from '../pages/Help';
+import { ProtectedRoute } from '../components/auth/ProtectedRoute';
+import { AppShell } from '../components/layout/AppShell';
 
 export function AppRoutes() {
   return (
@@ -22,16 +24,20 @@ export function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/upload" element={<Upload />} />
-      <Route path="/scan/:scanId/loading" element={<ScanLoading />} />
-      <Route path="/report/:reportId" element={<Report />} />
-      <Route path="/reports" element={<SavedReports />} />
-      <Route path="/journal" element={<Journal />} />
-      <Route path="/watchlist" element={<Watchlist />} />
       <Route path="/pricing" element={<Pricing />} />
-      <Route path="/settings" element={<Settings />} />
       <Route path="/help" element={<Help />} />
+
+      {/* Protected Routes */}
+      <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/upload" element={<Upload />} />
+        <Route path="/scan/:scanId/loading" element={<ScanLoading />} />
+        <Route path="/report/:reportId" element={<Report />} />
+        <Route path="/reports" element={<SavedReports />} />
+        <Route path="/journal" element={<Journal />} />
+        <Route path="/watchlist" element={<Watchlist />} />
+        <Route path="/settings" element={<Settings />} />
+      </Route>
     </Routes>
   );
 }

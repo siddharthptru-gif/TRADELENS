@@ -81,7 +81,7 @@ export function AICoreShowcase() {
              return (
                <div 
                  key={idx}
-                 ref={(el) => (cardsRef.current[idx] = el)}
+                 ref={(el) => { cardsRef.current[idx] = el; }}
                  className="absolute left-1/2 top-1/2 glass-panel p-5 rounded-2xl w-44 md:w-64 -ml-22 md:-ml-32 -mt-16 group hover:border-[#8CFF3F]/40 hover:shadow-[0_0_20px_rgba(140,255,63,0.15)] transition-colors duration-300"
                  style={{ 
                    transform: `translate(${x}px, ${y}px) translateZ(${Math.sin(angle) * 50}px)`

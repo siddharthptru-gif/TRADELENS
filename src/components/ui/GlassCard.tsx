@@ -1,5 +1,4 @@
 import React from 'react';
-import { cn } from '../../lib/utils'; // if exists, but I'll make a local utils.ts or just use clsx and tailwind-merge directly
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
