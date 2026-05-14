@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-dark-bg: #020403;
+  --color-dark-surface: #050705;
+  --color-dark-border: #090D0A;
+  --color-tradelens-green: #8CFF3F;
+  --color-tradelens-green-light: #B6FF72;
+  --color-tradelens-green-dark: #6EEB2F;
+  --color-glass: rgba(255,255,255,0.03);
+  --color-glass-border: rgba(255,255,255,0.08);
+  --color-muted: #8E9299;
+  --font-serif: "Instrument Serif", serif;
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+body {
+  background-color: var(--color-dark-bg);
+  color: white;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.grid-bg {
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.glow {
+  background: radial-gradient(circle at 50% 50%, rgba(140, 255, 63, 0.1) 0%, transparent 70%);
+}
+
+.glass-panel {
+  background: var(--color-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-glass-border);
+}
+
+.glass-pill {
+  background: var(--color-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 9999px;
+}
+
+.green-glow {
+  box-shadow: 0 0 40px rgba(140, 255, 63, 0.2);
+}
+
+.text-gradient-green {
+  background: linear-gradient(to right, #8CFF3F, #B8FF7A);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.perspective-scene {
+  perspective: 2000px;
+  transform-style: preserve-3d;
+}
+
+.chart-line-glow {
+  filter: drop-shadow(0 0 8px rgba(140, 255, 63, 0.6));
+}
+
+
+/* Custom grain overlay */
+.bg-grain {
+  position: relative;
+}
+.bg-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  z-index: 50;
+}
+
+/* Hide scrollbar for clean horizontal lists */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
