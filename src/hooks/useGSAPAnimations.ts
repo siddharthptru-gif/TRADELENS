@@ -1,14 +1,12 @@
-import { useLayoutEffect } from 'react';
+import { useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export function useGSAPAnimations(callback: () => void, dependencies: any[] = []) {
-  useLayoutEffect(() => {
-    const ctx = gsap.context(() => {
-      callback();
-    });
-    return () => ctx.revert();
-  }, dependencies);
+export function useGSAPAnimations() {
+  useEffect(() => {
+    // This allows re-triggering on route changes if needed
+    ScrollTrigger.refresh();
+  }, []);
 }

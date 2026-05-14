@@ -1,24 +1,33 @@
 import React from 'react';
-import { GradientButton } from '../components/ui/GradientButton';
-import { useNavigate } from 'react-router-dom';
+import { useGSAPAnimations } from '../hooks/useGSAPAnimations';
+import { LandingNavbar } from '../components/landing/LandingNavbar';
+import { HeroScene } from '../components/landing/HeroScene';
+import { AICoreShowcase } from '../components/landing/AICoreShowcase';
+import { DashboardPreview } from '../components/landing/DashboardPreview';
+import { HowItWorks } from '../components/landing/HowItWorks';
+import { UploadDemo } from '../components/landing/UploadDemo';
+import { SafetyTrust } from '../components/landing/SafetyTrust';
+import { FinalCTA } from '../components/landing/FinalCTA';
+import { LandingFooter } from '../components/landing/LandingFooter';
 
 export default function Landing() {
-  const navigate = useNavigate();
+  useGSAPAnimations();
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] px-6 text-center">
-      <h1 className="text-5xl md:text-7xl font-serif font-bold tracking-tight mb-6">
-        Upload any chart. <br />
-        <span className="text-[--color-tradelens-green]">Get structured market analysis in seconds.</span>
-      </h1>
-      <p className="text-xl text-muted max-w-2xl mb-12">
-        TradeLens AI is an educational chart-reading mentor. See structure, risk, and invalidation before you trade.
-      </p>
-      <GradientButton onClick={() => navigate('/upload')}>
-        Analyze a Chart Free
-      </GradientButton>
-      <div className="mt-8 text-xs text-white/40 uppercase tracking-widest font-mono">
-        Educational analysis. Not financial advice.
-      </div>
+    <div className="app-bg text-white selection:bg-[#8CFF3F]/30 overflow-hidden">
+      <LandingNavbar />
+      
+      <main>
+        <HeroScene />
+        <AICoreShowcase />
+        <DashboardPreview />
+        <HowItWorks />
+        <UploadDemo />
+        <SafetyTrust />
+        <FinalCTA />
+      </main>
+
+      <LandingFooter />
     </div>
   );
 }
