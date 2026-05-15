@@ -18,6 +18,7 @@ export default function Upload() {
     previewUrl,
     validationError,
     uploading,
+    uploadStep,
     uploadProgress,
     submitError,
     handleFileSelect,
@@ -43,6 +44,19 @@ export default function Upload() {
 
   const handleAnalyze = () => {
     submitScan(metadata);
+  };
+
+  const getButtonText = () => {
+    switch (uploadStep) {
+      case 'validating': return 'Validating Image...';
+      case 'compressing': return 'Compressing...';
+      case 'uploading_original': return 'Uploading Original...';
+      case 'uploading_compressed': return 'Uploading Optimized...';
+      case 'writing_scan_record': return 'Saving Record...';
+      case 'requesting_ai_analysis': return 'Starting Analysis...';
+      case 'completed': return 'Navigating...';
+      default: return uploading ? 'Uploading chart...' : 'Analyze Chart';
+    }
   };
 
   return (
@@ -94,7 +108,7 @@ export default function Upload() {
             disabled={!selectedFile || !!validationError || uploading}
             onClick={handleAnalyze}
           >
-            {uploading ? 'Uploading chart...' : 'Analyze Chart'}
+            {getButtonText()}
           </GradientButton>
           
           <p className="text-[10px] text-center text-muted mt-4 uppercase tracking-wider">

@@ -24,6 +24,17 @@ export interface UploadMetadata {
   riskPercent: string;
 }
 
+export type UploadStep = 
+  | 'idle'
+  | 'validating'
+  | 'compressing'
+  | 'uploading_original'
+  | 'uploading_compressed'
+  | 'writing_scan_record'
+  | 'requesting_ai_analysis'
+  | 'completed'
+  | 'failed';
+
 export function useChartUpload() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -33,6 +44,7 @@ export function useChartUpload() {
   const [validationError, setValidationError] = useState<string | null>(null);
   
   const [uploading, setUploading] = useState(false);
+  const [uploadStep, setUploadStep] = useState<UploadStep>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [scanId, setScanId] = useState<string | null>(null);
@@ -45,19 +57,24 @@ export function useChartUpload() {
     }
     setValidationError(null);
     setSubmitError(null);
+    setUploadStep('idle');
   };
 
   const handleFileSelect = async (file: File) => {
     clearSelectedFile();
+    setUploadStep('validating');
+    console.log("[Upload] validating image");
     const validation = await validateChartImage(file);
     if (!validation.valid) {
       setValidationError(validation.error || "Invalid file");
+      setUploadStep('failed');
       return;
     }
 
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
     setValidationError(null);
+    setUploadStep('idle');
   };
 
   const submitScan = async (metadata: UploadMetadata) => {
@@ -78,12 +95,21 @@ export function useChartUpload() {
     setScanId(newScanId);
     const uid = user.uid;
 
+    const timeoutId = setTimeout(() => {
+      console.warn("[Upload] timed out after 60 seconds");
+      setUploading(false);
+      setSubmitError("Upload timed out. Please try again or check your connection.");
+      setUploadStep('failed');
+    }, 60000);
+
     try {
       const ext = getFileExtension(selectedFile);
       const originalPath = getOriginalChartPath(uid, newScanId, ext);
       const compressedPath = getCompressedChartPath(uid, newScanId);
 
       // Compress image
+      setUploadStep('compressing');
+      console.log("[Upload] compressing image");
       let compressedFile: File | null = null;
       try {
         compressedFile = await imageCompression(selectedFile, {
@@ -97,6 +123,8 @@ export function useChartUpload() {
       }
 
       // Upload original
+      setUploadStep('uploading_original');
+      console.log("[Upload] uploading original");
       const origRef = storageRef(storage, originalPath);
       const uploadTask = uploadBytesResumable(origRef, selectedFile);
 
@@ -104,7 +132,6 @@ export function useChartUpload() {
         uploadTask.on('state_changed', 
           (snapshot) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            // Cap visual progress of upload so DB write is the last part
             setUploadProgress(progress * 0.8);
           },
           (error) => reject(error),
@@ -118,6 +145,8 @@ export function useChartUpload() {
       // Upload compressed if exists
       let compressedImageUrl: string | null = null;
       if (compressedFile) {
+        setUploadStep('uploading_compressed');
+        console.log("[Upload] uploading compressed");
         try {
           const compRef = storageRef(storage, compressedPath);
           await uploadBytesResumable(compRef, compressedFile);
@@ -130,6 +159,8 @@ export function useChartUpload() {
       setUploadProgress(95);
 
       // Write RTDB record
+      setUploadStep('writing_scan_record');
+      console.log("[Upload] creating scan record", newScanId);
       const scanData: ChartScan = {
         scanId: newScanId,
         id: newScanId, // backward compat
@@ -166,21 +197,31 @@ export function useChartUpload() {
       await set(recordRef, scanData);
       
       setUploadProgress(100);
+      setUploadStep('requesting_ai_analysis');
+      console.log("[Upload] calling requestAnalysis", newScanId);
+      
+      clearTimeout(timeoutId);
+      setUploading(false);
+      setUploadStep('completed');
       navigate(`/scan/${newScanId}/loading`);
 
-      // Fire and forget, or we could await it, but navigate first for UX
-      requestChartAnalysis(newScanId).catch((err) => {
-        console.error("Analysis request failed to start:", err);
+      // Fire and forget
+      requestChartAnalysis(newScanId).then((result) => {
+        console.log("[Upload] requestAnalysis result", result);
+      }).catch((err) => {
+        console.error("[Upload] Analysis request failed to start:", err);
       });
 
     } catch (error: any) {
-      console.error(error);
+      clearTimeout(timeoutId);
+      console.error("[Upload] Failed during upload pipeline:", error);
       if (error.code && error.code.includes('storage/')) {
         setSubmitError("Chart upload failed. Please check your connection and try again.");
       } else {
         setSubmitError("Chart uploaded, but scan record could not be created. Please try again.");
       }
       setUploading(false);
+      setUploadStep('failed');
     }
   };
 
@@ -189,6 +230,7 @@ export function useChartUpload() {
     previewUrl,
     validationError,
     uploading,
+    uploadStep,
     uploadProgress,
     submitError,
     scanId,
@@ -197,3 +239,4 @@ export function useChartUpload() {
     submitScan
   };
 }
+

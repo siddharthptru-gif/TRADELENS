@@ -6,15 +6,25 @@ import { db } from '../lib/rtdb';
 import { ChartScan } from '../types/dashboard';
 import { GlassCard } from '../components/ui/GlassCard';
 import { GradientButton } from '../components/ui/GradientButton';
-import { Loader2, CheckCircle2, ChevronRight, XCircle, ArrowLeft } from 'lucide-react';
+import { Loader2, CheckCircle2, ChevronRight, XCircle, ArrowLeft, RefreshCw } from 'lucide-react';
+import { requestChartAnalysis } from '../lib/analysisApi';
+import { useToast } from '../components/ui/GlobalToast';
 import { cn } from '../lib/utils';
 
 export default function ScanLoading() {
   const { scanId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addToast } = useToast();
   const [scan, setScan] = useState<ChartScan | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [now, setNow] = useState(Date.now());
+  const [retrying, setRetrying] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (!user || !scanId) return;
@@ -59,15 +69,15 @@ export default function ScanLoading() {
     );
   }
 
-  const { status, imageUrl, compressedImageUrl, symbol, marketType, timeframe, reportId } = scan;
+  const { status, imageUrl, compressedImageUrl, symbol, marketType, timeframe, reportId, errorCode, createdAt } = scan;
   
   const displayImage = compressedImageUrl || imageUrl;
   
   const stages = [
     { id: 'uploading', label: 'Uploading Chart', msg: 'Chart image uploaded successfully.' },
-    { id: 'queued', label: 'Queued', msg: 'AI analysis backend will be connected in Phase 6.' },
-    { id: 'analyzing', label: 'Analyzing Structure', msg: 'Reading candles, structure, and visible context...' },
-    { id: 'validating', label: 'Validating Report', msg: 'Validating risk-aware report format...' },
+    { id: 'queued', label: 'Queued', msg: 'Chart uploaded. Waiting for AI analysis to start...' },
+    { id: 'analyzing', label: 'Analyzing Structure', msg: 'AI is reading candles, structure, zones, and visible context...' },
+    { id: 'validating', label: 'Validating Report', msg: 'Validating safety and report structure...' },
     { id: 'completed', label: 'Analysis Complete', msg: 'Your educational report is ready.' }
   ];
 
@@ -75,6 +85,40 @@ export default function ScanLoading() {
   const activeStageIndex = Math.max(0, currentStageIndex);
   
   const isFailed = status === 'failed';
+  
+  const timeElapsed = now - (createdAt || now);
+  const isStuck = (status === 'queued' || status === 'analyzing' || status === 'validating') && timeElapsed > 120000;
+  
+  const showRetry = isFailed || status === 'queued' || isStuck;
+
+  const handleRetry = async () => {
+    if (!scanId || retrying) return;
+    setRetrying(true);
+    addToast({ title: 'Retrying', message: 'Requesting analysis again...', type: 'info' });
+    try {
+      await requestChartAnalysis(scanId);
+      addToast({ title: 'Started', message: 'Analysis request sent successfully.', type: 'success' });
+    } catch (err: any) {
+      console.error(err);
+      addToast({ title: 'Failed', message: err.message || 'Could not restart analysis.', type: 'error' });
+    } finally {
+      setRetrying(false);
+    }
+  };
+
+  const getErrorMessage = () => {
+    if (!errorCode) return "An unexpected error occurred during analysis.";
+    switch (errorCode) {
+      case 'gemini_key_missing': return "AI backend is missing Gemini API key. Set GEMINI_API_KEY in Firebase Functions and redeploy.";
+      case 'storage_failed': return "Uploaded image could not be read from Storage.";
+      case 'gemini_failed': return "Gemini analysis failed. Try a clearer chart or retry.";
+      case 'json_parse_failed': return "AI response could not be parsed safely.";
+      case 'validation_failed': return "AI response did not match safe report format.";
+      case 'usage_limit_reached': return "System usage limit reached.";
+      case 'unknown_error': return "Analysis failed due to an unknown backend error.";
+      default: return `Analysis failed: ${errorCode}`;
+    }
+  };
   
   return (
     <div className="min-h-screen bg-[#020403] text-white py-12 px-6">
@@ -122,7 +166,14 @@ export default function ScanLoading() {
               <div className="p-4 bg-[--color-tradelens-red]/10 border border-[--color-tradelens-red]/20 rounded-xl text-center">
                 <XCircle className="w-8 h-8 text-[--color-tradelens-red] mx-auto mb-2" />
                 <h3 className="text-[--color-tradelens-red] font-medium mb-1">Analysis Failed</h3>
-                <p className="text-sm text-[--color-tradelens-red]/80">{scan.errorCode || "An unexpected error occurred during analysis."}</p>
+                <p className="text-sm text-[--color-tradelens-red]/80">{getErrorMessage()}</p>
+              </div>
+            )}
+
+            {isStuck && !isFailed && (
+              <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-center">
+                <h3 className="text-yellow-500 font-medium mb-1">Taking longer than expected.</h3>
+                <p className="text-sm text-yellow-500/80">The backend might be warming up or delayed.</p>
               </div>
             )}
             
@@ -132,7 +183,20 @@ export default function ScanLoading() {
                    Upload Another
                  </button>
                )}
+               {showRetry && (
+                 <button onClick={handleRetry} disabled={retrying} className="flex-1 flex justify-center items-center gap-2 py-3 px-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-colors text-sm font-medium">
+                   {retrying ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                   Retry AI Analysis
+                 </button>
+               )}
             </div>
+            {(isFailed || showRetry) && (
+              <div className="flex gap-4 mt-2 mb-2">
+                 <button onClick={() => navigate('/upload')} className="flex-1 py-2 px-4 text-white/50 hover:text-white transition-colors text-sm font-medium">
+                   Back to Upload
+                 </button>
+              </div>
+            )}
           </div>
 
           <div className="md:pt-16">

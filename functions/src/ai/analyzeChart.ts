@@ -12,6 +12,7 @@ const ajv = new Ajv();
 const validateSchema = ajv.compile(reportSchema);
 
 export async function analyzeChartPipeline(uid: string, scanId: string): Promise<string> {
+  console.log("[requestAnalysis] started", { uid, scanId });
   let modelUsedForPricing = "";
   let inTokens = 0;
   let outTokens = 0;
@@ -21,6 +22,7 @@ export async function analyzeChartPipeline(uid: string, scanId: string): Promise
   try {
     // 1. Fetch scan
     const scan = await getScanRecord(uid, scanId);
+    console.log("[requestAnalysis] scan loaded", scan);
     if (!scan) {
       throw new AnalysisError("not-found", "Scan not found", "not-found");
     }
@@ -34,6 +36,7 @@ export async function analyzeChartPipeline(uid: string, scanId: string): Promise
 
     // 2. Check usage limits
     await checkAndInitializeUsage(uid);
+    console.log("[requestAnalysis] usage checked");
 
     // 3. Update status
     await updateScanStatus(uid, scanId, { status: "analyzing", startedAt: Date.now() });
@@ -44,8 +47,10 @@ export async function analyzeChartPipeline(uid: string, scanId: string): Promise
       throw new AnalysisError("storage_failed", "No image path found for scan.");
     }
     const imageInfo = await downloadImageAsBase64(targetPath);
+    console.log("[requestAnalysis] image loaded from storage");
 
     // 5. Call API
+    console.log("[requestAnalysis] calling Gemini");
     const aiResult = await callGeminiVision(imageInfo.base64, imageInfo.mimeType, {
       scanId,
       marketType: scan.marketType,
@@ -64,6 +69,7 @@ export async function analyzeChartPipeline(uid: string, scanId: string): Promise
     outTokens = aiResult.outputTokens;
     durationMs = aiResult.latencyMs;
 
+    console.log("[requestAnalysis] Gemini response received");
     await updateScanStatus(uid, scanId, { status: "validating" });
 
     // 6. Validations
@@ -73,6 +79,7 @@ export async function analyzeChartPipeline(uid: string, scanId: string): Promise
       throw new AnalysisError("validation_failed", "AI response did not match required schema.");
     }
 
+    console.log("[requestAnalysis] report validated");
     const sanitizedReport = sanitizeReport(aiResult.report);
     const finalReport = validateSafety(sanitizedReport);
     
@@ -100,6 +107,7 @@ export async function analyzeChartPipeline(uid: string, scanId: string): Promise
       trendDirection: finalReport.trendAnalysis.direction,
       fullReport: finalReport
     });
+    console.log("[requestAnalysis] report saved", { reportId });
 
     // 8. Update scan
     await updateScanStatus(uid, scanId, {
@@ -109,6 +117,7 @@ export async function analyzeChartPipeline(uid: string, scanId: string): Promise
       modelUsed: aiResult.modelUsed,
       promptVersion: PROMPT_VERSION
     });
+    console.log("[requestAnalysis] scan completed");
 
     // 9. Increment usage
     await incrementUsage(uid);
@@ -131,9 +140,15 @@ export async function analyzeChartPipeline(uid: string, scanId: string): Promise
     return reportId;
 
   } catch (error: any) {
-    let errorCode = "ai_failed";
+    console.error(`[requestAnalysis] failed for scan ${scanId}:`, error);
+    let errorCode = "unknown_error";
+    
     if (error instanceof AnalysisError) {
       errorCode = error.errorCode;
+    } else if (error.message && error.message.includes("GEMINI_API_KEY")) {
+      errorCode = "gemini_key_missing";
+    } else if (error.message && error.message.includes("parse")) {
+      errorCode = "json_parse_failed";
     } else if (error.message && error.message.includes("schema")) {
       errorCode = "validation_failed";
     } else if (error.message && error.message.includes("storage")) {
