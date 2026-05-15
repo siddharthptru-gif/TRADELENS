@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, UploadCloud, FolderOpen, BookOpen, Bookmark, Settings, LogOut, X, HelpCircle, Star } from 'lucide-react';
+import { LayoutDashboard, UploadCloud, FolderOpen, BookOpen, Bookmark, Settings, LogOut, X, HelpCircle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { motion } from 'framer-motion';
 

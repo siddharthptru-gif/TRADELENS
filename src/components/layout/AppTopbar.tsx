@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { UploadCloud, Menu, X, Star } from 'lucide-react';
+import { UploadCloud, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { MobileNav } from './MobileNav';
 

@@ -65,7 +65,7 @@ export function DataPrivacyCard({ counts, onExport, onWipe }: DataPrivacyCardPro
                <h4 className="font-bold text-[#FF5C7A] mb-1">Are you absolutely sure?</h4>
                <p className="text-sm text-white/70">
                  This action cannot be undone. This will permanently delete all your uploaded scans, AI reports, saved reports, trading journal entries, and watchlist items.
-                 Your account and subscription plan will not be deleted.
+                 Your account and basic profile settings will not be deleted.
                </p>
             </div>
           </div>

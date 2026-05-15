@@ -43,7 +43,7 @@ export function DangerZoneCard({ onSignOut, onDeleteAccount }: DangerZoneCardPro
           <div className="flex-1">
             <h4 className="text-red-400 font-bold mb-1">Delete Account</h4>
             <p className="text-xs text-red-400/70 mb-4 max-w-sm leading-relaxed">
-              Permanently delete your account, active subscription, profile, and all generated app data. This action is irreversible.
+              Permanently delete your account, profile, and all generated app data. This action is irreversible.
             </p>
 
             {showDeleteConfirm ? (

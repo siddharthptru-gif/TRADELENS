@@ -107,6 +107,12 @@ export function useSettingsData() {
       lastScanAt: 0
     };
 
+    // Pre-fill state so we don't flash error state while waiting for DB
+    setUserRecord(userFallback);
+    setProfile(profileFallback);
+    setSubscription({ planId: 'free', status: 'active', currentPeriodEnd: 0 });
+    setUsageLimits(usageLimitsFallback);
+
     const countListen = (r: any, key: keyof SettingsDataCounts) => {
       return onValue(r, (snap) => {
         const val = snap.val();

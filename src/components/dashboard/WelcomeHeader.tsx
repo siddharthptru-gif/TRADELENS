@@ -12,7 +12,6 @@ export function WelcomeHeader({ userRecord }: Props) {
   const displayName = userRecord?.displayName || user?.displayName || 'Trader';
   const email = userRecord?.email || user?.email || '';
   const photo = userRecord?.photoURL || user?.photoURL || '';
-  const plan = userRecord?.plan || 'Free';
 
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
