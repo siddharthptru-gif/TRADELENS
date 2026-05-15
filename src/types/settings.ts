@@ -62,7 +62,6 @@ export type SettingsTab =
   | 'profile' 
   | 'preferences' 
   | 'defaults' 
-  | 'subscription' 
   | 'privacy' 
   | 'safety' 
   | 'danger';

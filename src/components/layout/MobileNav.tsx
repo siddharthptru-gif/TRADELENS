@@ -63,9 +63,6 @@ export function MobileNav({ onClose }: { onClose: () => void }) {
         
         <div className="h-px bg-white/10 my-4" />
         
-        <Link to="/pricing" onClick={onClose} className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/70 hover:text-white rounded-xl">
-          <Star className="w-5 h-5 text-yellow-400" /> Plans
-        </Link>
         <Link to="/help" onClick={onClose} className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/70 hover:text-white rounded-xl">
           <HelpCircle className="w-5 h-5 text-blue-400" /> Help & Safety
         </Link>
@@ -78,7 +75,6 @@ export function MobileNav({ onClose }: { onClose: () => void }) {
            </div>
            <div className="flex-1 min-w-0">
              <p className="text-sm font-medium text-white truncate">{user?.email}</p>
-             <p className="text-xs text-[#8CFF3F] uppercase tracking-wider font-mono">Free Plan</p>
            </div>
         </div>
         <button 

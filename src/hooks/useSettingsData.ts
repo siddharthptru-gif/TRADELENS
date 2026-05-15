@@ -61,28 +61,67 @@ export function useSettingsData() {
 
     const unsubs: (() => void)[] = [];
 
-    // Simple listener helper
-    const listen = (r: any, setter: (val: any) => void) => {
+    const listenWithFallback = (r: any, setter: (val: any) => void, fallback: any) => {
       return onValue(r, (snap) => {
-        setter(snap.val());
+        setter(snap.val() || fallback);
       }, (err) => {
-        console.error(err);
+        console.warn(`Error reading ${r.key}, using fallback:`, err);
+        setter(fallback);
       });
     };
 
-    unsubs.push(listen(refs.user, setUserRecord));
-    unsubs.push(listen(refs.profile, setProfile));
-    unsubs.push(listen(refs.subscription, setSubscription));
-    unsubs.push(listen(refs.usageLimits, setUsageLimits));
+    const userFallback = {
+      uid: user.uid,
+      email: user.email || "",
+      displayName: user.displayName || "Trader",
+      photoURL: user.photoURL || "",
+      createdAt: Date.now(),
+      lastLoginAt: Date.now(),
+      disclaimerAcceptedAt: Date.now()
+    };
 
-    // Listen to counts
+    const profileFallback = {
+      experienceLevel: "beginner",
+      preferredMarkets: ["crypto"],
+      tradingStyle: "swing",
+      riskProfile: "medium",
+      defaultTimeframe: "1D",
+      defaultMarketType: "crypto",
+      onboardingCompleted: true,
+      preferences: {
+        theme: "dark",
+        language: "en",
+        showPositionSizing: true,
+        showSmcConcepts: true
+      },
+      updatedAt: Date.now()
+    };
+
+    const usageLimitsFallback = {
+      dailyLimit: 999999,
+      monthlyLimit: 999999,
+      dailyUsed: 0,
+      monthlyUsed: 0,
+      dailyResetAt: Date.now() + 86400000,
+      monthlyResetAt: Date.now() + 2592000000,
+      lastScanAt: 0
+    };
+
     const countListen = (r: any, key: keyof SettingsDataCounts) => {
       return onValue(r, (snap) => {
         const val = snap.val();
         const count = val ? Object.keys(val).length : 0;
         setDataCounts(prev => ({ ...prev, [key]: count }));
+      }, (err) => {
+        console.warn(`Error reading counts for ${r.key}:`, err);
+        setDataCounts(prev => ({ ...prev, [key]: 0 }));
       });
     };
+
+    unsubs.push(listenWithFallback(refs.user, setUserRecord, userFallback));
+    unsubs.push(listenWithFallback(refs.profile, setProfile, profileFallback));
+    unsubs.push(listenWithFallback(refs.subscription, setSubscription, { planId: 'free', status: 'active', currentPeriodEnd: 0 }));
+    unsubs.push(listenWithFallback(refs.usageLimits, setUsageLimits, usageLimitsFallback));
 
     unsubs.push(countListen(refs.chartScans, 'scansCount'));
     unsubs.push(countListen(refs.analysisReports, 'reportsCount'));

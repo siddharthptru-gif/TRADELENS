@@ -64,9 +64,6 @@ export function AppSidebar() {
 
       <div className="p-4 border-t border-white/10">
         <div className="flex flex-col gap-1 mb-4">
-          <Link to="/pricing" className="flex items-center gap-3 px-3 py-2 text-xs font-medium text-white/50 hover:text-white transition-colors rounded-lg hover:bg-white/5">
-            <Star className="w-4 h-4" /> Plans
-          </Link>
           <Link to="/help" className="flex items-center gap-3 px-3 py-2 text-xs font-medium text-white/50 hover:text-white transition-colors rounded-lg hover:bg-white/5">
             <HelpCircle className="w-4 h-4" /> Help & Safety
           </Link>
@@ -78,7 +75,6 @@ export function AppSidebar() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs text-white truncate font-medium">{user?.email}</p>
-            <p className="text-[10px] text-[#8CFF3F] uppercase tracking-wider font-mono">Free Plan</p>
           </div>
           <button onClick={handleLogout} className="p-1.5 text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
             <LogOut className="w-4 h-4" />

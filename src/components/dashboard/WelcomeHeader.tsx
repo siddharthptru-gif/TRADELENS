@@ -28,9 +28,6 @@ export function WelcomeHeader({ userRecord }: Props) {
           <h1 className="text-3xl font-serif tracking-tight">Welcome back, {displayName}</h1>
           <div className="flex items-center gap-3 mt-1">
             <span className="text-sm text-muted">{email}</span>
-            <span className="px-2 py-0.5 rounded-md bg-[#8CFF3F]/10 text-[#8CFF3F] text-[10px] uppercase tracking-widest border border-[#8CFF3F]/20">
-              {plan} plan
-            </span>
           </div>
         </div>
       </div>

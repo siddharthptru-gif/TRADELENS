@@ -9,7 +9,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { AppErrorState } from '../components/ui/AppErrorState';
 import { useToast } from '../components/ui/GlobalToast';
 
-import { ProfileSettingsCard, SubscriptionUsageCard } from '../components/settings/ProfileSettingsCards';
+import { ProfileSettingsCard } from '../components/settings/ProfileSettingsCards';
 import { TradingPreferencesCard, AnalysisDefaultsCard } from '../components/settings/PreferencesCards';
 import { DataPrivacyCard } from '../components/settings/DataPrivacyCard';
 import { SafetyDisclaimerCard } from '../components/settings/SafetyDisclaimerCard';
@@ -71,7 +71,6 @@ export default function SettingsPage() {
     { id: 'profile', label: 'Profile', icon: <User className="w-4 h-4" /> },
     { id: 'preferences', label: 'Trading Preferences', icon: <Target className="w-4 h-4" /> },
     { id: 'defaults', label: 'Analysis Defaults', icon: <Sliders className="w-4 h-4" /> },
-    { id: 'subscription', label: 'Subscription & Usage', icon: <Activity className="w-4 h-4" /> },
     { id: 'privacy', label: 'Data & Privacy', icon: <Database className="w-4 h-4" /> },
     { id: 'safety', label: 'Safety', icon: <ShieldAlert className="w-4 h-4" /> },
     { id: 'danger', label: 'Danger Zone', icon: <AlertCircle className="w-4 h-4" /> },
@@ -138,13 +137,6 @@ export default function SettingsPage() {
             <AnalysisDefaultsCard 
               profile={profile}
               onSave={(market, timeframe, prefs) => wrapAction(() => updateAnalysisDefaults(market, timeframe, prefs), "Analysis defaults saved")}
-            />
-          )}
-
-          {activeTab === 'subscription' && (
-            <SubscriptionUsageCard 
-              subscription={subscription}
-              usageLimits={usageLimits}
             />
           )}
 

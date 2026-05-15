@@ -41,11 +41,6 @@ export function AppTopbar() {
         </div>
 
         <div className="flex items-center gap-3 md:gap-4">
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs shadow-sm">
-            <Star className="w-3.5 h-3.5 text-yellow-400" />
-            <span className="text-white/60">Free Plan</span>
-          </div>
-          
           <Link 
             to="/upload"
             className="flex items-center gap-2 px-4 py-2 bg-[#8CFF3F]/10 hover:bg-[#8CFF3F]/20 text-[#8CFF3F] border border-[#8CFF3F]/20 rounded-xl text-sm font-bold transition-all shadow-[0_0_15px_rgba(140,255,63,0.1)] hover:shadow-[0_0_20px_rgba(140,255,63,0.2)]"
